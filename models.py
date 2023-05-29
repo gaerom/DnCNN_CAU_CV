@@ -4,7 +4,7 @@ import torch.nn as nn
 
 # class
 class DnCNN(nn.Module):
-    def __init__(self, num_of_channels, num_of_layers):
+    def __init__(self):
         '''
         self
         num_of_channels
@@ -15,7 +15,8 @@ class DnCNN(nn.Module):
         super().__init__()
         kernel_size = 3
         # hyper parameter
-        self.depth = 17
+        num_of_channels = 64
+        self.num_of_layers = 17
         self.is_used_bn = True
         eps = 0.0001
         momentum = 0.95
@@ -40,7 +41,7 @@ class DnCNN(nn.Module):
         # MODEL Architecture
         y = self.input_conv(x)
         y = self.relu(y)
-        for d in range(self.depth-2):
+        for d in range(self.num_of_layers-2):
                 y = self.conv(y)
                 if self.is_used_bn:
                     y = self.bn(y)
