@@ -72,4 +72,4 @@ def inference(opt):
     ssim_score = compare_ssim(test_img, inference_img)
     # save img
     imsave(OUTPUT_PATH, np.clip(inference_img,0,1))
-    print(f'{TEST_IMG_PATH} Image, psnr : {psnr_score}, ssim : {ssim_score}, time : {start.elapsed_time(end)}')
+    print(f'{TEST_IMG_PATH} Image saved to {OUTPUT_PATH}, psnr : {psnr_score}, ssim : {ssim_score}, time : {start.elapsed_time(end)}')
