@@ -43,19 +43,17 @@ def train(opt):
     # Define dataset_type based on the configuration
     dataset_type = opt['datasets']['train']['dataset_type']
 
+    # Measure time in PyTorch
+    start = torch.cuda.Event(enable_timing=True)
+    end = torch.cuda.Event(enable_timing=True)
+
     # Iterate over phases (train, test)
     for phase, dataset_opt in opt['datasets'].items():
         if phase == 'train':
             train_dataset = define_Dataset(dataset_opt)
             train_dataloader = train_dataloader(train_dataset)
-        elif phase == 'test':
-            avg_psnr = 0.0
-            test_dataset = define_Dataset(dataset_opt)
-            test_dataloader = test_dataloader(test_dataset)
-        else:
-            raise NotImplementedError("Phase [%s] is not recognized." % phase)
 
-        if phase == 'train':
+            # 밑에 코드 위로 합침
             model = DnCNN()
             model.cuda()
             model.train()
@@ -64,22 +62,34 @@ def train(opt):
             lr_scheduler = get_lr_scheduler(lr_scheduler_name, optimizer=optimizer)
             for epoch in range(0, n_epoch):
                 epoch_loss = 0
-                st = time.time()
+
+                # start time
+                start.record()
                 for xy in train_dataloader:
-                    x, y = xy[0].cuda(), xy[1].cuda() # x: noisy image, y:ground truth
+                    low_img, gt_img = xy[0].cuda(), xy[1].cuda() # low_img: noisy image, gt_img:ground truth
                     optimizer.zero_grad()
-                    prediction = model(x)
-                    loss = criterion(prediction, y)
+                    pred_img = model(low_img)
+                    loss = criterion(pred_img, gt_img)
                     epoch_loss = loss.item()
                     loss.backward()
                     optimizer.step()
-                et = time.time() - st
+                # end time
+                end.record()
+                torch.cuda.synchronize()
                 lr_scheduler.step()
-                print(f'epoch : {epoch}, loss : {epoch_loss/batch_size}, time : {et}')
+                print(f'epoch : {epoch}, loss : {epoch_loss/batch_size}, time : {start.elapsed_time(end)}')
 
             torch.save(model, PATH+'DnCNN.pth')
+
+
         elif phase == 'test':
-            pass
+            avg_psnr = 0.0
+            test_dataset = define_Dataset(dataset_opt)
+            test_dataloader = test_dataloader(test_dataset)
+
+        else:
+            raise NotImplementedError("Phase [%s] is not recognized." % phase)
+            
 
 
     val_dataloader = test_dataloader
