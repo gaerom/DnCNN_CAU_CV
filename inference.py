@@ -49,6 +49,9 @@ def inference(opt):
     model.cuda()
 
     test_img = np.array(imread(os.path.join(TEST_IMG_PATH)))
+    # timer
+    start = torch.cuda.Event(enable_timing=True)
+    end = torch.cuda.Event(enable_timing=True)
 
     # 가우시안 노이즈 추가
     np.random.seed(seed=1024)
@@ -56,35 +59,17 @@ def inference(opt):
     noisy_img = noisy_img.astype(np.float32)
     torch_nimg = torch.from_numpy(noisy_img).view(1, -1, noisy_img.shape[0], noisy_img.shape[1])
 
+    start.record()
+    torch_nimg = torch_nimg.cuda()
+    inference_img = model(torch_nimg)
+    inference_img = inference_img.view(noisy_img.shape[0], noisy_img.shape[1])
+    inference_img = inference_img.cpu()
+    inference_img = inference_img.detach().numpy().astype(np.float32)
+    end.record()
     torch.cuda.synchronize()
-    start_time = time.time()
-    y_ = y_.cuda()
-    x_ = model(y_)  # inference
-    x_ = x_.view(y.shape[0], y.shape[1])
-    x_ = x_.cpu()
-    x_ = x_.detach().numpy().astype(np.float32)
-    torch.cuda.synchronize()
-    elapsed_time = time.time() - start_time
-    print('%10s : %10s : %2.4f second' % (set_cur, im, elapsed_time))
 
-
-
-    
-
-
-    # Define dataset_type based on the configuration
-    dataset_type = opt['datasets']['train']['dataset_type']
-
-    # Iterate over phases (train, test)
-    for phase, dataset_opt in opt['datasets'].items():
-        
-        avg_psnr = 0.0
-        test_dataset = define_Dataset(dataset_opt)
-        test_dataloader = test_dataloader(test_dataset)
-
-        else:
-            raise NotImplementedError("Phase [%s] is not recognized." % phase)
-            
-
-
-    val_dataloader = test_dataloader
+    psnr_score = compare_psnr(test_img, inference_img)
+    ssim_score = compare_ssim(test_img, inference_img)
+    # save img
+    imsave(OUTPUT_PATH, np.clip(inference_img,0,1))
+    print(f'{TEST_IMG_PATH} Image, psnr : {psnr_score}, ssim : {ssim_score}, time : {start.elapsed_time(end)}')
