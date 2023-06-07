@@ -18,6 +18,14 @@ class MSE_loss(nn.modules.loss._Loss):
         super(MSE_loss, self).__init__()
     def forward(self, y, target):
         return f.mse_loss(y, target)
+    
+def get_optimizer(optim_name, parameters, lr):
+    if optim_name == 'Adam':
+        return optim.Adam(parameters, lr)
+    elif optim_name == "SGD":
+        return optim.SGD(parameters, lr, momentum=0.9)
+    else:
+        print("Optimizer 이름을 확인해주세요")
 
 def get_lr_scheduler(lr_name, optimizer):
     if lr_name == "MultiStepLR":
