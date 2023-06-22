@@ -11,8 +11,6 @@ from skimage.measure import compare_psnr, compare_ssim
 from skimage.io import imread, imsave
 
 
-
-
 # from dataloader_utils import train, train_dataloader, test_dataloader
 def train_dataloader(train_dataset):
     train_dataloader = DataLoader(
