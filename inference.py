@@ -5,21 +5,9 @@ import torch.optim as optim
 import time
 from torch.utils.data import DataLoader
 from models import DnCNN
-from utils import MSE_loss, get_lr_scheduler
 import numpy as np
 from skimage.measure import compare_psnr, compare_ssim
 from skimage.io import imread, imsave
-
-# from dataloader_utils import train, train_dataloader, test_dataloader
-def train_dataloader(train_dataset):
-    train_dataloader = DataLoader(
-        dataset=train_dataset,
-        batch_size=64,
-        num_workers=2,
-        persistent_workers=True,
-        sampler=torch.utils.data.RandomSampler(train_dataset),
-    )
-    return train_dataloader
 
 def test_dataloader(test_dataset):
     test_dataloader = DataLoader(
